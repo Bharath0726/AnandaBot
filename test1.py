@@ -18,16 +18,27 @@ st.set_page_config(
     page_icon=logo_path  # Setting the favicon (logo) in the tab
 )
 
+# Access the secrets via st.secrets
+groq_api_key = st.secrets["GROQ_API_KEY"]
+hf_token = st.secrets["HF_TOKEN"]
+langchain_api_key = st.secrets["LANGCHAIN_API_KEY"]
+langchain_project = st.secrets["LANGCHAIN_PROJECT"]
+
+# Set environment variables for Langchain
+os.environ["LANGCHAIN_API_KEY"] = langchain_api_key
+os.environ["LANGCHAIN_PROJECT"] = langchain_project
+os.environ["LANGCHAIN_TRACING_V2"]="true"
+
 # Load environment variables
 load_dotenv()
 os.environ['GROQ_API_KEY'] = os.getenv("GROQ_API_KEY")
 groq_api_key = os.getenv("GROQ_API_KEY")
 
 # Langsmith Tracking
-os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
-os.environ['HF_TOKEN'] = os.getenv("HF_TOKEN")
+# os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
+# os.environ["LANGCHAIN_TRACING_V2"] = "true"
+# os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
+# os.environ['HF_TOKEN'] = os.getenv("HF_TOKEN")
 from langchain_huggingface import HuggingFaceEmbeddings
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
