@@ -180,7 +180,7 @@ def chatbot_greeting():
 st.title("Master Crypto with ANANDA")
 
 # Node Activation Button (Conversation opener)
-if st.button("Node Activate"):
+if st.button("Click here to here!"):
     create_vector_embedding()
     chatbot_greeting()  # Add chatbot greeting message
     st.write("Conversation Started!")
