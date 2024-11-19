@@ -3,6 +3,7 @@ import os
 from langchain_groq import ChatGroq
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.chains import LLMChain  # Import LLMChain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_retrieval_chain
@@ -12,22 +13,11 @@ import time
 from dotenv import load_dotenv
 
 # Set page title and favicon (Ananda logo)
-logo_path = "https://ananda.exchange/wp-content/uploads/2022/03/cropped-Fondos-y-recursos-20.png"  # Replace with the path to your Ananda logo
+logo_path = "https://ananda.exchange/wp-content/uploads/2022/03/cropped-Fondos-y-recursos-20.png"
 st.set_page_config(
     page_title="ChatBot",
-    page_icon=logo_path  # Setting the favicon (logo) in the tab
+    page_icon=logo_path
 )
-
-# Access the secrets via st.secrets
-groq_api_key = st.secrets["GROQ_API_KEY"]
-hf_token = st.secrets["HF_TOKEN"]
-langchain_api_key = st.secrets["LANGCHAIN_API_KEY"]
-langchain_project = st.secrets["LANGCHAIN_PROJECT"]
-
-# Set environment variables for Langchain
-os.environ["LANGCHAIN_API_KEY"] = langchain_api_key
-os.environ["LANGCHAIN_PROJECT"] = langchain_project
-os.environ["LANGCHAIN_TRACING_V2"]="true"
 
 # Load environment variables
 load_dotenv()
@@ -35,26 +25,37 @@ os.environ['GROQ_API_KEY'] = os.getenv("GROQ_API_KEY")
 groq_api_key = os.getenv("GROQ_API_KEY")
 
 # Langsmith Tracking
-# os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
-# os.environ["LANGCHAIN_TRACING_V2"] = "true"
-# os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
-# os.environ['HF_TOKEN'] = os.getenv("HF_TOKEN")
+os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
+os.environ['HF_TOKEN'] = os.getenv("HF_TOKEN")
 from langchain_huggingface import HuggingFaceEmbeddings
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-llm = ChatGroq(groq_api_key=groq_api_key, model_name="llama3-8b-8192")
+# Define Groq LLMs with different models
+#llm_gemma2 = ChatGroq(groq_api_key=groq_api_key, model_name="gemma2-9b-it")
+#llm_mixtral = ChatGroq(groq_api_key=groq_api_key, model_name="mixtral-8x7b-32768")
+llm_llama3 = ChatGroq(groq_api_key=groq_api_key, model_name="llama3-8b-8192")
 
-prompt = ChatPromptTemplate.from_template(
+# Create chains for each LLM
+prompt_template = ChatPromptTemplate.from_template(
     """
-    Answer the questions based on the provided context and also Imagine yourself an an expert in the field of cryptocurrency.
-    Please provide the most accurate response based on the question.
-    If you don't know the answer, try to give generic answer.
+    You're expert in cryptocurreny field, answer question only related to that
+    Answer the questions from the pdf, if it is not there, try to give a geneic answer.
     <context>
     {context}
     <context>
     Question: {input}
     """
 )
+
+def create_llm_chain(llm):
+    return LLMChain(llm=llm, prompt=prompt_template)
+
+# Chains for different LLMs
+#chain_gemma2 = create_llm_chain(llm_gemma2)
+#chain_mixtral = create_llm_chain(llm_mixtral)
+chain_llama3 = create_llm_chain(llm_llama3)
 
 def create_vector_embedding():
     if "vectors" not in st.session_state:
@@ -69,7 +70,7 @@ def create_vector_embedding():
 st.markdown(
     f"""
     <style>
-   body {{
+    body {{
         background-image: url("https://ananda.exchange/wp-content/uploads/2023/02/We-Make-Buying-Bitcoin.png");
         background-size: cover;
         background-position: center;
@@ -90,7 +91,7 @@ st.markdown(
         padding: 20px;
         border-radius: 20px;
         box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        background-color: rgba(0, 0, 0, 0.7); /* Add a semi-transparent background */
+        background-color: rgba(0, 0, 0, 0.7);
     }}
 
     .user-msg {{
@@ -162,7 +163,6 @@ st.markdown(
 )
 
 # Display the logo at the top left corner using st.image
-logo_path = "https://ananda.exchange/wp-content/uploads/2022/03/cropped-Fondos-y-recursos-20.png"
 st.image(logo_path, width=100)  # Adjust the width if needed
 
 # Initialize session state for chat history
@@ -180,7 +180,7 @@ def chatbot_greeting():
 st.title("Master Crypto with ANANDA")
 
 # Node Activation Button (Conversation opener)
-if st.button("Click here to Start!"):
+if st.button("Node Activate"):
     create_vector_embedding()
     chatbot_greeting()  # Add chatbot greeting message
     st.write("Conversation Started!")
@@ -206,29 +206,36 @@ render_chat()
 with st.container():
     user_prompt = st.text_input("Message Ananda", key="message_input", placeholder="Type your message here...", label_visibility="collapsed")
 
-# Process user input
+# Compare multiple LLMs
+def compare_llms(prompt):
+
+    start_llama3 = time.process_time()
+    response_llama3 = chain_llama3.run({"context": "", "input": prompt})  # Ensure both context and input keys are passed
+    time_llama3 = time.process_time() - start_llama3
+
+    return {
+        "llama3": {"response": response_llama3, "time": time_llama3}
+    }
+
+# Process user input and compare LLMs
 if user_prompt:
-    start = time.process_time()
+    responses = compare_llms(user_prompt)
 
-    document_chain = create_stuff_documents_chain(llm, prompt)
-    retriever = st.session_state.vectors.as_retriever()
-    retrieval_chain = create_retrieval_chain(retriever, document_chain)
-
-    response = retrieval_chain.invoke({'input': user_prompt})
-    response_text = response['answer']
-
-    # Append the new user message and the response to chat history
-    st.session_state.chat_history.append({"user": user_prompt, "bot": response_text})
+    st.session_state.chat_history.append({"user": user_prompt, "bot": f"Bot: {responses['llama3']['response']} (Time: {responses['llama3']['time']:.2f}s)"})
 
     # Render the updated chat history
     render_chat()
+    print(f"Llama3 LLM Time: {responses['llama3']['time']:.2f}s")
 
-    # Debugging the response time
-    print(f"Response time: {time.process_time() - start}")
-
-# Document similarity section
-if user_prompt:
-    with st.expander("Document similarity Search"):
-        for i, doc in enumerate(response['context']):
-            st.write(doc.page_content)
-            st.write('------------------------')
+# Add a footer with a catchy phrase and link to the website at the bottom of the page with a black background
+st.markdown(
+    """
+    <div style='text-align: center; margin-top: 20px;'>
+        <a href="https://ananda.exchange/about-us/" target="_blank" 
+           style='color: white; text-decoration: none; font-size: 18px; background-color: black; padding: 10px 20px; border-radius: 10px;'>
+            Discover more About Us!
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
