@@ -222,28 +222,35 @@ def perform_ttest(model_a_scores, model_b_scores):
 - Statistical significance.
 
 
-## Project Workflow
+## Evaluation Workflow
 
-1. **Chatbot Setup**:
-   - Launch `app.py` to initialize the chatbot interface.
-   - Input queries into the chatbot and analyze responses.
+1. **Chatbot Setup:**
+   - Launch `app.py` to initialize the chatbot.
+   - Interact with the chatbot and analyze responses.
 
-2. **Evaluation**:
-   - Use `llm_metrics_evaluation.py` to calculate performance metrics for each model.
-   - Save the results to `comparison_results_weighted_RAG.csv`.
+2. **Model Evaluation:**
+   - Use `llm_metrics_evaluation.py` to compute performance metrics.
+   - Save results to `comparison_results_weighted_RAG.csv`.
 
-3. **Statistical Analysis**:
-   - Run `T-Test Analysis for LLM Comparisons.py` to compare models statistically.
-   - Review `T-Test Results.pdf` for a summary of findings.
-
-4. **Documentation**:
-   - All results are stored in `.csv` and `.pdf` files for easy reference.
+3. **Statistical Analysis:**
+   - Run `T-Test Analysis for LLM Comparisons.py` for detailed comparisons.
+   - Review `T-Test Results.pdf` for insights.
 
 ---
 
 ## Key Features of the Chatbot
 
-- **LLM-Driven Responses**: Delivers accurate answers using Llama3, optimized for cryptocurrency queries.
-- **Document Retrieval**: Supports RAG-based queries for enhanced context and reliability.
-- **Interactive UI**: User-friendly Streamlit interface with real-time updates.
-- **Evaluation-Driven Insights**: Combines quantitative metrics and statistical tests to fine-tune the model.
+- **LLM-Driven Responses:** Powered by Groq's Llama3, optimized for cryptocurrency-related queries.
+- **Document Retrieval:** Incorporates RAG-based techniques for improved context and reliability.
+- **User-Friendly Interface:** Interactive UI built with Streamlit for smooth communication.
+- **Evaluation Metrics:** Robust system for assessing model performance using BLEU, ROUGE, and BERTScore.
+
+---
+
+## Contact
+
+For questions, suggestions, or collaboration opportunities:  
+- **Email**: team5@opim5770.com  
+- **GitHub Repository**: [Ananda Chatbot](https://github.com/your-repo/ananda-chatbot)
+
+---
